@@ -1,0 +1,38 @@
+import matplotlib.pyplot as plt
+from numpy.random import random
+import numpy as np
+import math
+%matplotlib inline
+import matplotlib.pyplot as plt
+plt.style.use('seaborn-whitegrid')
+import numpy as np
+import numpy
+
+data = input("WISEHII.txt")
+objects = data.read().splitlines()
+long = []
+for n in range (50, len(objects)):
+    long.append(float(objects[n][19:25]))
+print(len(objects))
+lat = []
+for n in range (50, len(objects)):
+    lat.append(float(objects[n][27:33]))
+area = []
+for n in range (50, len(objects)):
+    area.append((float(objects[n][35:38]))*(1/3600)*(math.pi/180))
+    
+distO5 = [] 
+R = [['O5', 108],['O6', 74],['O7', 56],['O8', 51],['O9', 34],['O9.5', 29],['B0', 23],['B0.5', 12]]
+
+for n in range (0, len(area)):
+        distO5.append(2*(R[0][1]/(2*math.tan(area[n]/2))))
+print(distO5)
+
+import matplotlib.pyplot as plt
+rng = np.array(distO5)
+rng = plt.hist(rng, bins=100) 
+plt.title("Histogram of incidence vs Distance (Mpc)")
+plt.show()
+
+distO5.sort()
+print('O5 Radius estimation yields', int(distO5[int(len(distO5)*0.05)])/1000, 'to',  int(distO5[int(len(distO5)*0.95)])/1000, 'Kilo Parsecs')
