@@ -1,0 +1,203 @@
+import numpy as np
+import astropy.io.fits as fits
+from astropy import wcs
+import os
+import math
+import matplotlib.pyplot as plt
+from astropy.visualization import astropy_mpl_style
+plt.style.use(astropy_mpl_style)
+from astropy.nddata import Cutout2D
+from astropy import units as u
+import sympy as sp
+import seaborn as sns
+import pandas as pd
+
+path = input("FITS folder path: ")
+os.chdir(path)
+print(os.getcwd())
+imagechunks = []
+for items in os.listdir():
+    a = 5 
+    hdul = fits.open(items)
+    hdul.info()
+    ave = []
+    if math.trunc(hdul[0].shape[1]/a) < math.trunc(hdul[0].shape[0]/a):
+        length = math.trunc(hdul[0].shape[1]/a)
+    else:
+        length = math.trunc(hdul[0].shape[0]/a)
+    for n in range (0, length-1):
+        for i in range(0, length-1):
+            py = a*n 
+            px = a*i 
+            dataI = hdul[0].data[py:py+a,px:px+a]
+            r = 0
+            for s in range (0, a):
+                xray = np.sum(dataI[s])
+                r = r + xray
+        
+            ave.append(r/(a**2))
+    imagechunks.append([items, length, ave])
+rays = []
+for n in range(0, len(imagechunks)):
+    b = np.reshape(imagechunks[n][2], (-1,imagechunks[n][1]-1))
+    rays.append([imagechunks[n][0], b])
+#print(rays[0])
+print(imagechunks[1][0])
+
+for c in range(0, len(rays)):
+    chunk = []
+    xay = []
+    yay = []
+    Mag = 0
+    C = 2*a
+    for n in range(1, imagechunks[0][1]-2):
+        for i in range(1, imagechunks[0][1]-2):
+            a = rays[c][1][n][i]
+            one = rays[c][1][n+1][i]
+            two = rays[c][1][n][i+1]
+            three = rays[c][1][n-1][i]
+            four = rays[c][1][n][i-1]
+            Ya = (one-three)/(one+three)
+            Xa = (two-four)/(two+four)
+            Y = Ya/math.sqrt(Xa**2+Ya**2)
+            X = Xa/math.sqrt(Xa**2+Ya**2)
+            if math.sqrt(Xa**2+Ya**2) < Mag:
+                X = 0
+                Y = 0
+            xay.append(X)
+            yay.append(Y)
+    B = np.reshape(yay, (imagechunks[0][1]-3, imagechunks[0][1]-3))
+    C = np.reshape(xay, (imagechunks[0][1]-3, imagechunks[0][1]-3))
+    t = np.arange(0, imagechunks[0][1]-3, 1)
+    x = np.arange(0, imagechunks[0][1]-3, 1)
+    T, X = np.meshgrid(t,x)
+    plt.figure()
+    plt.title('Direction Field')
+    Q = plt.quiver(T, X, C, B)
+    
+    image_data = fits.getdata(str(imagechunks[c][0]), ext=0)
+    plt.figure()
+    plt.title('FITS image')
+    plt.imshow(image_data, cmap='Blues_r', origin = 'lower')
+
+    Coly = (np.concatenate(B).reshape(len(B), len(B)))
+    M, N = Coly.shape
+    Col = 10
+    split_Coly = Coly[0:M-M%Col, 0:N-N%Col].reshape(M//Col, Col, -1, Col).swapaxes(1, 2).reshape(-1, Col, Col)
+    
+    Colx = (np.concatenate(C).reshape(len(B), len(B)))
+    M, N = Colx.shape
+    split_Colx = Colx[0:M-M%Col, 0:N-N%Col].reshape(M//Col, Col, -1, Col).swapaxes(1, 2).reshape(-1, Col, Col)
+    
+    lineX = []
+    lineY = []
+    
+    for x in range(len(split_Coly)):
+        L = np.sum(split_Coly[x])
+        M = np.sum(split_Colx[x])
+        lineX.append(M)
+        lineY.append(L) 
+    T = np.arange(0, split_Coly.shape[1], 1)
+    X = np.arange(0, split_Coly.shape[1], 1)
+    GridY = np.reshape(lineX, (split_Coly.shape[1], split_Coly.shape[1]))
+    GridX = np.reshape(lineY, (split_Coly.shape[1], split_Coly.shape[1]))
+    
+    plt.figure()
+    plt.title('Enhanced Field')
+    Q = plt.quiver(T,X, GridX, GridY)
+    
+for c in range(0, len(rays)):
+    chunk = []
+    xay = []
+    yay = []
+    Mag = 0
+    C = 2*a
+    for n in range(1, imagechunks[0][1]-2):
+        for i in range(1, imagechunks[0][1]-2):
+            a = rays[c][1][n][i]
+            one = rays[c][1][n+1][i]
+            two = rays[c][1][n][i+1]
+            three = rays[c][1][n-1][i]
+            four = rays[c][1][n][i-1]
+            Ya = (one-three)/(one+three)
+            Xa = (two-four)/(two+four)
+            Y = Ya/math.sqrt(Xa**2+Ya**2)
+            X = Xa/math.sqrt(Xa**2+Ya**2)
+            if math.sqrt(Xa**2+Ya**2) < Mag:
+                X = 0
+                Y = 0
+            xay.append(X)
+            yay.append(Y)
+    B = np.reshape(yay, (imagechunks[0][1]-3, imagechunks[0][1]-3))
+    C = np.reshape(xay, (imagechunks[0][1]-3, imagechunks[0][1]-3))
+    t = np.arange(0, imagechunks[0][1]-3, 1)
+    x = np.arange(0, imagechunks[0][1]-3, 1)
+    T, X = np.meshgrid(t,x)
+ #   plt.figure()
+  #  plt.title('Direction Field')
+   # Q = plt.quiver(T, X, C, B)
+    
+    image_data = fits.getdata(str(imagechunks[c][0]), ext=0)
+#    plt.figure()
+ #   plt.title('FITS image')
+  #  plt.imshow(image_data, cmap='Blues_r', origin = 'lower')
+
+    Coly = (np.concatenate(B).reshape(len(B), len(B)))
+    M, N = Coly.shape
+    Col = 10
+    split_Coly = Coly[0:M-M%Col, 0:N-N%Col].reshape(M//Col, Col, -1, Col).swapaxes(1, 2).reshape(-1, Col, Col)
+    
+    Colx = (np.concatenate(C).reshape(len(B), len(B)))
+    M, N = Colx.shape
+    split_Colx = Colx[0:M-M%Col, 0:N-N%Col].reshape(M//Col, Col, -1, Col).swapaxes(1, 2).reshape(-1, Col, Col)
+    
+    lineX = []
+    lineY = []
+   
+    for x in range((Col-1)**2):
+        L = np.sum(split_Coly[x])
+        M = np.sum(split_Colx[x])
+        lineX.append(M)
+        lineY.append(L)
+    finalline=[]
+    for x in range(len(lineX)):
+        finalline.append(lineX[x]+lineY[x])
+    X = np.arange(0, split_Coly.shape[1], 1)
+    GridY = np.reshape(finalline, (split_Coly.shape[1]-1, split_Coly.shape[1]-1)) 
+
+#    plt.figure()
+ #   sns.set_theme()
+  #  uniform_data = GridY
+   # ax = sns.heatmap(GridY)
+    
+    for x in range(len(finalline)):
+        if abs(finalline[x]) >= 120:
+            print(c)
+ f = fits.open(path)
+    w = wcs.WCS(f[0].header)
+    newf = fits.PrimaryHDU()
+    newf.data = f[0].data[430:-10,430:-10]
+    newf.header = f[0].header
+    newf.header.update(w[430:-10,430:-10].to_header())
+    
+path = "C:\\Users\\allen\\CS309\\WISEFITS 1"
+os.chdir(path)
+def read_text_file(file_path):
+    with open(file_path, 'r') as f:
+        print(f.read())
+for file in os.listdir():
+    if file.endswith(".txt"):
+        file_path = f"{path}\{file}"
+        read_text_file(file_path)
+import os
+import shutil
+
+f = r"WISEFITS 1"
+subfolders = [f.path for f in os.scandir(f) if f.is_dir()]
+
+for sub in subfolders:
+    for f in os.listdir(sub):
+        src = os.path.join(sub, f)
+        dst = os.path.join(folder, f)
+        shutil.move(src, dst)
+            
