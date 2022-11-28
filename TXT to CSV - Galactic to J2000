@@ -1,0 +1,21 @@
+import os as os
+import math
+import csv
+import astropy as ap
+from astropy import coordinates as coord
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+
+os.chdir(r"C:\Users\allen\CS309")
+data = open("GalaxieRAandDEC.txt")                                
+lines = data.read().splitlines() 
+radec = []                                          
+for n in range(0, len(lines)):
+    gal = [lines[n].split(",")[0][0:8], lines[n].split(",")[1][0:8]]
+    c_icrs = coord.SkyCoord(l=float(gal[0])*u.degree, b=float(gal[1])*u.degree, frame='galactic')
+    c_fk5 = c_icrs.galactic.transform_to('fk5')
+    couple = c_fk5.ra.deg, c_fk5.dec.deg
+    radec.append(couple)
+with open('CorrectedGalaxies.csv', 'w', newline = '') as f:
+    csv.writer(f).writerows(radec)
+print(radec)
