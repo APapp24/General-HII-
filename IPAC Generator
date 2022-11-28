@@ -1,0 +1,116 @@
+#The purpose of this notebook is to create IPAC ASCII compliant .txt files given either a .csv of requests or general search parameters.
+
+import numpy 
+import math
+from csv import reader
+import os
+import pandas as pd
+from collections import defaultdict
+
+
+
+yncsv = input(".csv file? (y/n):")
+ynbatch = input("Custom search parameters? (y/n):")
+
+if yncsv == 'y':
+    yncsv = 1
+else:
+    yncsv = 0
+    
+if ynbatch == 'y':
+    ynbatch = 1
+else:
+    ynbatch = 0
+    
+    
+    
+if yncsv == 1:
+    file = input("Enter file path to csv:")
+if ynbatch == 1:
+    raorigin = float(input("Input center RA:"))
+    decorigin = float(input("Input center Dec.:"))
+    length = float(input("Input sides dimension:"))
+    divisions = int(input("Number of subdivisions:"))
+    file = input("Enter .txt file destination")
+    
+    
+    
+#csv processing module
+#Takes the csv and outputs a list of tuples 
+#Theres an expectation that the csv is comprized of two columns, an RA column and a DEC column respectively 
+#Units for both columns should be degrees
+if yncsv == 1:
+    erg = file.split('\\')
+    secfile = []
+    for n in range (0,len(erg)-1):
+        secfile.append(erg[n])
+    litfile = erg[len(erg)-1]
+    dirfile ='\\'.join(secfile)
+    os.chdir(dirfile)
+    listed = []
+    csv_tuples = []
+    with open(litfile) as csv_data:
+        data = reader(csv_data)
+        for row in data: 
+            listed.append(row)
+    for n in range (1, len(listed)):
+        csv_tuples.append([float(listed[n][0]), float(listed[n][1])])
+        
+        
+#Generated batch search module 
+if ynbatch == 1:
+    btras = []
+    figure = []
+    dec = []
+    for n in range(0, divisions):
+        for n in range(0, divisions):
+              figure.append(raorigin - length/2 + n*length/divisions) 
+    for n in range(0,divisions):
+        for n in range (0, divisions):
+              dec.append(decorigin - length/2 + n*length/divisions)
+    for i in range(0, divisions):
+        for n in range(0, divisions):
+            if 0<=figure[i]<=360 and -90<=dec[n]<=90:
+                btras.append([figure[i],dec[n]])
+                
+                
+ #IPAC complier module:
+#ins = number of objects per IPAC 
+ins = 1000
+if yncsv == 1:
+    fin = csv_tuples
+    os.chdir(dirfile)
+if ynbatch == 1:
+    fin = btras
+    os.chdir(file)
+numpages = math.trunc(len(fin)/ins)+1
+finfig = []
+for n in range(0, len(fin)):
+    for i in range(0, len(fin[n])):
+        finfig.append(round(fin[n][i],5))
+
+cwd = os.getcwd()
+print(cwd)
+for i in range (0, numpages-1): 
+    with open("{}rWoisend.txt".format(i), "w") as f:
+        f.write("|               l|               b|")
+        f.write("\n|          double|          double|")
+        f.write("\n|         degrees|         degrees|") 
+        f.write("\n")
+        a = -2
+        for n in range (0, ins):
+            a = a+2
+            f.write(str(finfig[i*2*ins+a]).rjust(10))
+            f.write(str(finfig[i*2*ins+a+1]).rjust(20))
+            f.write("\n")
+            
+with open("remainderWoisend.txt", "w") as f:
+    f.write("|               l|               b|")
+    f.write("\n|          double|          double|")
+    f.write("\n|         degrees|         degrees|") 
+    f.write("\n")
+    for n in range (0, len(fin)-ins*(numpages-1)):
+        a = 2*n+((i+1)*ins)
+        f.write(str(finfig[(i+1)*ins+a]).rjust(10))
+        f.write(str(finfig[(i+1)*ins+a+1]).rjust(20))
+        f.write("\n")
