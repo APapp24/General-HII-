@@ -1,0 +1,381 @@
+I'm assuming you're running the tests like make tests/userprog/[name of test].result VERBOSE=1? These tests print out the VERBOSE output to console using write(), so it will be the first syscall of each test.
+
+So for make tests/userprog/create-normal.result VERBOSE=1, whose expected output begins with:
+  (create-normal) begin
+  (create-normal) create quux.dat
+  (create-normal) end
+you should see syscall nums coming in as 9 (to write the first line), another 9 (to write the second line), then 4 (to create the file in the second line), then 9 again (to write the "end" line). You may or may not see an exit call hexdumped as well depending on if you've implemented it or not.
+
+
+
+Usually this error occurs because of path mixups; if pintos is working fine outside of this (try source ~/.profile or running a premade test make tests/, I'd try to untar a clean pintos directory and paste what you've changed so far.
+
+
+It might be a similar issue to @360, where the prints are causing the order of threads running to change because of a race condition. Also looks like those two lines are printing at the same time
+
+
+
+
+
+It could be of indeterminate length; I think the tests have donation chains that are only a handful of threads long (not at my computer but I can check to confirm later); your solution should be general enough that it doesn't matter. 
+
+
+Donating priority through a for loop is acceptable, as is doing it recursively! You don't need to worry about running out of stack frames, if that's the approach you choose.
+
+
+I would resend just to be safe; the TAs get kind of inundated in emails regarding this sort of thing.
+
+
+Yes, you're allowed to change that (and any of the synch.c code!). The current functionality just pushes a thread onto the end of the waiters list, so you'll have to change that either in sema_down or sema_up to make sure the waiters list is in sorted order.
+
+
+I would truncate them if you have the time, although you will not be held responsible for any pre-set text that does not follow formatting rules. It's just that we run scripts on them so it would make it a lot easier on our end.
+
+
+No, please remember to reference any code you talk about by file name and line number (and function name, if applicable). The only code on your design doc should be where we ask you to fill out 
+
+
+
+Take a look at what thread_tick() does (in thread.c), especially with regards to calling thread_yield() (who will have control of the CPU once thread_tick() is called?). Also remember that when you sema_down, the idea is that the thread is blocked (sleeping) from that point forward. See if you need to rearrange any of your code based on this; feel free to followup if this is unclear!
+
+
+You shouldn't need to calloc for these structures; the thread that you'd want to put on the sleep list is the thread itself that is currently executing the method. There's no difference between a thread and a sleeping thread, it's just that sleeping threads are blocked and placed on the sleep list while asleep.
+
+
+As for your list, look into list_elem on the project page. You'll have to place list_elem inside a thread struct in order to iterate over said threads (methods in lib/kernel/list.c will be helpful with this). 
+
+
+Let us know of any followups!
+
+
+list_elem is a struct that you can place inside another struct (eg. a thread) in order to iterate over them easily. You can iterate over a list of list_elems pretty easily, converting from list_elem to the associated thread using list_entry, and you can modify/traverse lists of threads using the functions in list.c/list.h (list_insert_ordered, list_prev, etc.). For each list that this thread is on at a time, there must be a unique list_elem in the thread struct. For example, allelem is the list_elem corresponding to the universal thread list.
+
+
+
+Topic sentence important, connects to thesis
+Chicago manual of style
+
+
+
+
+
+Make sure you're using list_elems correctly (iterating through this list using the list_elem that corresponds to this list). Your list is likely corrupted; without knowing any other info, here's some general tips:
+https://docs.google.com/document/d/1SzvPr9WHrxH7FEc2FHno5OPSKBnHzVP4nFpyYWZECqY/edit#heading=h.m28ny53qqhs9
+
+
+Let us know if this is unclear!
+
+
+You shouldn't need to call timer_interrupt() explicitly; the "waking up" of a thread will be done by unblocking a thread using the semaphore that Dr. Norman mentioned in the 11a section. The timer is an external device which sends external interrupts each time it ticks, and the currently running thread handles them in timer_interrupt(). So within timer_interrupt(), you'll have to implement some way to wake up threads.
+
+The first output is the expected (correct) output, and the output below "Differences" means that your output is missing those lines with dashes. If there were lines with a plus nearby, that means your output was adding that unexpected line.
+
+
+Likely that your code can't locate the pintos path; is it correctly on your .profile? If it is, try running source ~/.profile as well to re-source your path and see if that helps.
+
+
+The idle thread will run when there are no other threads on the ready list, and you shouldn't have to modify it in order to
+
+
+
+It's hard to say since just generally speaking, page fault exceptions mean you're accessing an invalid address (perhaps a null pointer, similar to a segfault in that regard). I recommend putting ASSERT(0); everywhere, minefield style, as checks to see how far your code gets before it pagefaults (when your code executes this line, it'll kill the kernel).
+
+
+Feel free to followup with more info!
+
+Feel free to followup with more details!
+
+
+
+
+Consider the case where 10 threads all have to sleep for the same amount of time, 
+
+
+
+That design sounds good. You shouldn't need to modify the list_elem struct for any reason, and explicitly initializing list_elem isn't necessary--just declare it in your thread struct.
+
+
+For dealing with sleeping threads, that sounds like a good idea! So, timer_sleep and timer_interrupt are the two methods in timer.c that work in conjunction. Think of the timer as an external device. It sends external interrupts each time it ticks, and those are caught and handled in timer_interrupt() by the current running thread. This is how time is measured in pintos.
+
+
+You should handle waking and putting threads to sleep using a synchronization primitive (see synch.c/synch.h). Is there any synchronization primitive that can block a thread, that is recommended to be used in kernel code? 
+
+
+Let us know if this is unclear, and feel free to followup!
+
+
+
+
+Ngl I'm not sure exactly, here's a few possible things that could be going on:
+
+
+Misuse of list_head, or some related list iteration function. This is likely in regards to your ready queue.
+Is priority being considered when your thread is taken off/pushed onto the ready queue (is the ready queue maintained in sorted order)?
+Is thread_set_priority correct?
+
+
+Hope this helps, feel free to followup with more details!
+
+
+On the design docs, question A3 asks that you minimize time spent in the interrupt handler.
+
+
+
+Yes, list_entry is the key here! The entire list macros is weird so, a general explanation about list_elem and list_entry:
+
+list_elem is a struct that you can place inside another struct (eg. a thread) in order to iterate over them easily. You can iterate over a list of list_elems pretty easily, converting from list_elem to the associated thread using list_entry, and you can modify/traverse lists of threads using the functions in list.c/list.h (list_insert_ordered, list_prev, etc.). For each list that this thread is on at a time, there must be a unique list_elem in the thread struct. For example, allelem is the list_elem corresponding to the universal thread list.
+
+You might be looking at the wrong semaphore
+
+list_iterating_function () {
+   struct list_elem *curr_elem = list_begin(&my_list);
+   struct thread *my_thread = list_entry (
+}
+ 
+   
+Just sorting the waiters list 
+
+
+Oop my bad, I thought you had no other way of reverting priority back to its original once the thread had released the lock. Sorry, your design should work fine then as long as you revert priority upon releasing the lock!
+
+You will need to store which thread wants which lock for priority-donate-multiple. From comment at top of tests/priority-donate-multiple.c: The main thread acquires locks A and B, then it creates two higher-priority threads.  Each of these threads blocks acquiring one of the locks and thus donate their priority to the main thread.  The main thread releases the locks in turn and relinquishes its donated priorities." In the drawing, you can think of C as the main thread.
+
+Let me know if this is unclear!
+
+
+
+
+
+
+
+
+I would leave it in to be safe.
+
+
+
+to tell 439 section, 2/11:
+-please use gradescope from canvas!!!
+-union desk is handing out kn95s, go up to desk
+
+
+2021-08-18-18-19-52.bag
+
+_2021-10-28-14-13-40.bag
+
+
+right! was gonna confirm--means we're all coming in person, with some of us being on zoom in the same room? or are we delegating modality among us?
+
+having difficulty managing inductive step of the proof since their example has a definite point of divergence
+
+Subp: For a given minimum focal length l and max focal length y, F(y) returns min cost set covering range [L, y).
+
+
+For the subset of lenses with s <= start (binary search to suffix array)
+	select lens that minimizes h - f_i, and add it to subset of lenses
+start = f_i
+N = subarray of remaining lenses N that we could take.
+
+
+Recurrence:
+F(y) = min(for all lenses with y - 1 <= f_i and s_i <= y - 1, F(s_i) + c_i)
+
+For all lenses starting before current y and ending after the current y (as in, lenses with a f_i that expands the current range), find the minimum cost set that covers the range.
+
+Correctness:
+For every y, we are determining the lowest-cost set of lenses that covers up to that focal length. Since this is done for the range [L, H), calling F(H)
+
+Solving the problem: Solve for F(H), which returns cheapest set covering range [L, H). Use bottom-up DP to do so, where outer for loop iteates over range L to H, while inner for loop iterates over N. This would therefore have O(N(H-L)) time complexity.
+
+We never check same set of values twice, as lenses are sorted by shortest foci. For example, with three lenses that start 
+
+
+F(y) = min(for all lenses with f_i > = y, F(s_n))
+Explaantion: F(x, y, n, i) will either return the cost for [x, y-1] if y included in this covered range, or this is the case where [x, y) is covered without the i'th lens, or this is the case where we need to take the i'th lens to cover the range [x, y). 
+
+For F(): we have to consider 2 cases: 
+
+
+
+Start with looking at the alarm clock portion of the project--the relevant files for this portion are devices/timer.c (take a look at timer_sleep() and timer_interrupt()) and threads/thread.c (you'll have to learn what thread_tick() does).
+
+
+If you have any specific questions, please followup! Even stuff like "what does [x] function do"; it'll help us guide you in the right direction/correct any misunderstandings.
+
+
+parts a and b: roommate initial value should be 0 since they're not currently available
+
+
+n are the same. n cubed for same_instance
+
+if this lens's h is greater than our current subset's h, then we take this lens. if this lens's l is less than our subset's l <-- this should never happen :(
+
+
+hey karen, sorry to bother you again but im really not sure how the algorithm would work for this situation--
+
+
+redefined C in terms of n. space complexity n^3 because each n positions 
+
+
+
+
+Time management issues/not starting early affect us all--I am hopeful that acknowledging this issue now will help it go better next time!
+
+And yep, this first project really is a crash course in C. If you're concerned about any general skills (working with pointers, debugging, project pacing, staying sane in this course, etc.), feel free to ask us on any medium (piazza/code appts/office hours/email)! I also came into this course with a Bad Time from 429; just know the TAs are happy to help in any capacity!
+
+Happy to hear you had a good experience with your partner! And I empathize, just know that the amount of knowledge and growth from the start of the project til now has been immense, and sticking with is its own accomplishment.
+
+
+
+
+ Time management issues/not starting early affect us all--I am hopeful that acknowledging this issue now will help it go better next time!
+
+This first project really is a crash course in C and debugging, I'm glad you learned a lot from it.
+
+Happy to hear you had a good experience with your partner! And yep, the level of communication while coding is always a balancing act between partners.
+
+
+
+Time management issues/not starting early affect us all--I am hopeful that acknowledging this issue now will help it go better next time!
+
+This first project really is a crash course in C, I'm glad you learned a lot from it.
+
+And yep, feel free to come to hours early on, even just to chat vaguely about stuff--we're here to help!
+
+Happy to hear you had a good experience with your partner!
+
+I'm assuming they got cut off, but do fill out the rating for your partner next time! We use those to check in on how your group dynamics worked out.
+
+
+This first project really is a crash course in C and Linux syscalls, I'm glad you learned a lot from it.
+
+And yes, designing before coding is always tough, and will become even more important as time goes on; good job on tackling this early!
+
+Happy to hear you had a good experience with your partner!
+
+
+
+Congrats on the full test case pass! And yep, this first project really is a crash course in pointers, I'm glad you learned a lot from it.
+
+And yes, being stringent about version control is tough, and will become even more important as time goes on; good job on tackling this early!
+
+Happy to hear you had a good experience with your partner!
+
+
+
+This first project really is a crash course in C and Linux file syscalls, I'm glad you learned a lot from it.
+
+Good job on sticking to a schedule; it's tough for this first project where you're not too sure about the scope of it all--glad you tackled this early!
+
+Happy to hear you had a good experience with your partner!
+
+
+lol ya my approach is just gonna be to copy the rest of the stack overflow :/ the most glaring thing is that idk if changing out one lens also affects the configuration of lenses we pick up after that point
+
+
+
+
+ooo i c, ye that's def nlogn--should var end be set to the first lens's f_i? not sure when s<=end evaluates to true for the first lens
+
+
+for the "updating our values" in the second to last line, that means removing redundant lenses as well? I was thinking of that heuristic too but not sure if backtracking means ours is still a valid backtracking algorithm
+
+
+hey karen, still kinda confused on how the greedy algo handles this case--would it simply not take B (redundant lens)? or would it take all A, B, and C and then backtrack to reconstruct the lenses taken (since the lens with the furthest endpoint, in this case C, will always occur later in the subset than a redundant lens)?
+
+
+
+good morning! if it's alright, I can supervise this morning's class on just zoom?
+
+
+
+btw how will TA helpers work during hybrid class Wednesday? like monitoring zoom while in the same room as in person lecture?
+
+
+depth camera->cost map
+amrl servers: storing data (backfiles are sensing data by ross, can be replayed as simulation--robot logs), gpu compute
+
+
+todo: ask amanda adkins to add me to amrl servers
+-go to directory sadegh sent, /robodata/jackal_logs
+-run `rosbag info <name of bagfile>` gives info on topics: each topic is a sensory input, find the ones with depth image data. can be 
+-convert data to format that's easiest, then work with data in code language of choice (python ok for now, learn c++)
+-when deploying, do it in c++
+
+structure of data:
+-rosbag, topic extraction: rgb and depth images
+-rgb for visualization purposes, depth for actual navigation
+-next to get data for what ramps look like
+-grep
+-topic is the name of the stream of data; might be topics of the same time
+
+
+as for 1b's proof the glaring flaw is that we can't say for sure if the optimal lens subset changes after the one entry that we tweak...but im just assuming that it's possible and going w it lol
+
+
+sorry for the lateness, but I don't have root permissions to run some of the commands you sent--
+
+_2021-10-28-14-13-40.bag
+
+-depth velodyne is in the format of a point cloud
+-for images: ross to cv
+-for point clouds: pcl library for ross point clouds to pcl
+
+3d point cloud is a ladar with depth readigns and long range (100 meters), but low density of points--hard to see ground in front of
+
+however, kinect gives dense reading of depth of points right in front of the robot. can be augmented with velodyne
+
+kinect depth data comes in depth images: 2d array with each pixel being depth of point
+
+
+rgb data: /left/iamage_color/compressed
+/velodyne_2dscan is short distance depth
+
+latest bags are more likely to have depth data
+
+ross data --> numpy --> cost map
+-falling off curbs
+-going up ramps
+
+kinect collects both rgb and depth data: for every point in rgb image, you can get depth camera input for that point as well
+
+
+-coding questions channel on slack
+-dm sadegh on 
+
+terrain traverse: is it geometrically traversable (steep slope?), must also consider type of terrain--for now focus on first point
+
+geometric obstacle approach: fixed height limit -- any obstacle of depth above this point is then an obstacle
+
+-read papers sadegh sends, common approaches and overarching goal of project
+-use them as starting point--will eventually want to use learning
+-computing roughness for terrain map
+
+Hi Amanda, I just joined the lab recently and Sadegh recommended I get data access permissions from you; could you please add me to the amrl servers? my eid is att959 (I'm assuming they're accessible from the utcs machines). Thanks in advance!
+
+Will do, thanks!
+
+Eddie: 
+Jeffrey: 
+Leia: thanks for being buff, sorry about the psychological damage
+Mandy: ur my 
+David: god may fear u but ur still my lil meow meow <3
+Altan: 
+Ami: nice cock(ing) <3
+Alekhya: coupon for if ruchi makes a short joke abt u I'll die in her stead
+Mike: ur my brotato, my spud bud, my tuber dudeber <3
+Nidhi: u make my heart muscles stretch <3 when im w u I feel like I can touch the sky floor <3
+Ruchi: ur fit tonight is so stunning <3 lemme kno when u wanna try me on next
+
+
+just copy one or two bag files for initial experiments:
+-
+
+\
+
+
+import numpy as np
+inputs = 
+weights = [[ ]]
+biases = 
+
+output = np.dot(weights, inputs) + biases

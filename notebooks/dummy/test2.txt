@@ -1,0 +1,119 @@
+brady group
+sema_down'ing in while loop
+buffer check
+array size for setup stack
+file lock in process.c
+
+if they use palloc in setup_stack, should they have to check its return?
+
+should fine grained locking around fd table access?
+
+
+
+tara group:
+wait_on_parent used to synch around load status since it uses same variable as exit status ; load status variable = exit status variable
+
+
+
+
+for slack:
+where should load status be stored? not in parent???
+
+
+
+
+
+
+
+
+
+
+
+
+
+schon rosmarin
+
+3.85 * 10^41 * r**2 * (2.46* 10**4 * T + 1.57 * 100 * T**2) * e**(-1.57 * 100 / T)
+
+edwin's gf's name: nhi mai tang
+pho place in dallas: pho bac
+
+MESSAGE JULIA JOSEPH
+
+null reserved question. not all pages allocated
+
+
+(1 + 2.5 + 4.3 + 4.3) / 3
+
+q7 docked super hard
+
+have regrades before revisions, students will use exam guide rather than solution for regrades.
+
+regrades due monday, 5:30pm.
+revisions due thursday, 5:30pm.
+
+7, 3, 6
+-
+
+things to ask for next exam grading:
+-can we form groups to grade specific problems
+-
+
+ah I see, I just think they shouldn't have to use one of their revise/resubmit 
+
+
+batches: with small batch size, nn tries to fit to each one separately--best fit line bounces around a ton. bigger batch size means less frenetic bouncing, but too big size and overfitting--so 32-64-128 is good
+
+adding batches, you might have to transpose the weight matrix to match shapes (input dotted with weights)
+
+each layer is just weights and biases
+
+softmax is: exponentiation of outputs to get rid of negative values, then normalization to get probability
+-prior to exponentiation: subtract largest value of this layer
+
+how wrong is the decision? use categorical cross entropy
+
+
+
+get numbers on forbidden line spectra
+watch out for star clusters vs galaxies vs hii
+
+
+
+subscheme
+
+
+gradient of higher pixel values
+obvious
+
+two perros 
+
+extract
+
+-see if arcseconds --> dimensions works
+140pixels by 140pixels
+gradient is only in x and y direction, which is ra and dec
+vectors have to meet threshold before their directions are considered/intersections considered
+
+
+preprocessing should: 
+neural nets has finite dimensions: "high average"
+
+
+categorize: 
+
+2560 x 2560 pixel dimensions per unit (easily divisible), number/size of partitions decided by preprocessing
+
+standard sizes of subunits decided by 
+
+each pixel should have gradient, indication 
+
+
+subunit size 
+
+
+
+gradient because hii regions have slower gradients than faraway galaxies (which just look like bright points)
+
+
+-
